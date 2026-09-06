@@ -1,4 +1,5 @@
-﻿using FastEndpoints;
+﻿using System.Security.Claims;
+using FastEndpoints;
 
 namespace Cycle_App.Features.Test.Authenticated;
 
@@ -12,8 +13,8 @@ public class AuthenticatedTestEndpoint
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var userId = User.FindFirst("sub")?.Value;
-        var email = User.FindFirst("email")?.Value;
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
         var name = User.Identity?.Name;
 
         await Send.OkAsync(
