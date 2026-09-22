@@ -1,4 +1,5 @@
 ﻿using Cycle_App.Data;
+using CycleMaintenance.Services.Authentication;
 using Dapper;
 using FastEndpoints;
 
@@ -8,17 +9,19 @@ public class CreateTicketEndpoint
     : Endpoint<CreateTicketRequest, CreateTicketResponse>
 {
     private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly ICurrentUserService _currentUser;
 
     public CreateTicketEndpoint(
-        IDbConnectionFactory dbConnectionFactory)
+        IDbConnectionFactory dbConnectionFactory,
+        ICurrentUserService currentUser)
     {
         _dbConnectionFactory = dbConnectionFactory;
+        _currentUser = currentUser;
     }
 
     public override void Configure()
     {
         Post("/api/tickets");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(
@@ -68,7 +71,8 @@ public class CreateTicketEndpoint
                 AssigneeId,
                 ContactPhone,
                 ContactEmail,
-                Description
+                Description,
+                CreatedBy
             )
             VALUES
             (
@@ -80,7 +84,8 @@ public class CreateTicketEndpoint
                 @AssigneeId,
                 @ContactPhone,
                 @ContactEmail,
-                @Description
+                @Description,
+                @CreatedBy
             )
             RETURNING
                 Id,
@@ -93,12 +98,25 @@ public class CreateTicketEndpoint
                 ContactPhone,
                 ContactEmail,
                 Description,
-                CreatedAt;
+                CreatedAt,
+                CreatedBy;
             """;
 
         var ticket = await connection.QuerySingleAsync<CreateTicketResponse>(
             sql,
-            req);
+            new
+            {
+                req.CustomerId,
+                req.CycleId,
+                req.CompanyName,
+                req.StatusId,
+                req.PriorityId,
+                req.AssigneeId,
+                req.ContactPhone,
+                req.ContactEmail,
+                req.Description,
+                CreatedBy = _currentUser.UserId
+            });
 
         await Send.OkAsync(ticket, ct);
     }

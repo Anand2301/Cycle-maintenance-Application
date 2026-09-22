@@ -29,27 +29,54 @@ public class GetTicketsEndpoint
         const string sql = """
             SELECT
                 t.Id,
+                t.CustomerId,
+                t.CycleId,
+
                 c.Name AS CustomerName,
                 cy.Model AS CycleModel,
                 cy.SerialNumber,
+
+                t.CompanyName,
+
+                t.StatusId,
                 s.Name AS Status,
+
+                t.PriorityId,
                 p.Name AS Priority,
+
+                t.AssigneeId,
                 CONCAT(u.FirstName, ' ', COALESCE(u.LastName, '')) AS AssigneeName,
+
                 t.ContactPhone,
                 t.ContactEmail,
                 t.Description,
-                t.CreatedAt
+
+                t.CreatedAt,
+                t.UpdatedAt,
+
+                t.UpdatedBy,
+                CONCAT(ub.FirstName, ' ', COALESCE(ub.LastName, '')) AS UpdatedByName
+
             FROM Tickets t
+
             INNER JOIN Customers c
                 ON t.CustomerId = c.Id
+
             INNER JOIN Cycles cy
                 ON t.CycleId = cy.Id
+
             INNER JOIN Statuses s
                 ON t.StatusId = s.Id
+
             INNER JOIN Priorities p
                 ON t.PriorityId = p.Id
+
             LEFT JOIN Users u
                 ON t.AssigneeId = u.Id
+
+            LEFT JOIN Users ub
+                ON t.UpdatedBy = ub.Id
+
             ORDER BY t.CreatedAt DESC;
             """;
 

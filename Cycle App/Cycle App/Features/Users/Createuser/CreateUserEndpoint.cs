@@ -37,61 +37,139 @@ public class CreateUserEndpoint
     {
         using var connection = _dbConnectionFactory.CreateConnection();
 
-        // 1. Hash the user's password.
-        var passwordHash = _passwordHasher.HashPassword(req.Password);
+        using var transaction = connection.BeginTransaction();
 
-        // 2. Create the user as inactive.
-        const string sql = """
-            INSERT INTO Users
-            (
-                FirstName,
-                LastName,
-                Email,
-                PhoneNumber,
-                PasswordHash,
-                IsActive
-            )
-            VALUES
-            (
-                @FirstName,
-                @LastName,
-                @Email,
-                @PhoneNumber,
-                @PasswordHash,
-                FALSE
-            )
-            RETURNING
-                Id,
-                FirstName,
-                LastName,
-                Email,
-                PhoneNumber,
-                IsActive,
-                CreatedAt;
-            """;
+        try
+        {
+            // 1. Hash the user's password.
+            var passwordHash =
+                _passwordHasher.HashPassword(req.Password);
 
-        var user = await connection.QuerySingleAsync<CreateUserResponse>(
-            sql,
-            new
+            // 2. Create the user as inactive.
+            const string userSql = """
+                INSERT INTO Users
+                (
+                    FirstName,
+                    LastName,
+                    Email,
+                    PhoneNumber,
+                    PasswordHash,
+                    IsActive
+                )
+                VALUES
+                (
+                    @FirstName,
+                    @LastName,
+                    @Email,
+                    @PhoneNumber,
+                    @PasswordHash,
+                    FALSE
+                )
+                RETURNING
+                    Id,
+                    FirstName,
+                    LastName,
+                    Email,
+                    PhoneNumber,
+                    IsActive,
+                    CreatedAt;
+                """;
+
+            var user = await connection.QuerySingleAsync<CreateUserResponse>(
+                userSql,
+                new
+                {
+                    req.FirstName,
+                    req.LastName,
+                    req.Email,
+                    req.PhoneNumber,
+                    PasswordHash = passwordHash
+                },
+                transaction);
+
+            // 3. Assign roles to the user.
+            const string roleSql = """
+                INSERT INTO UserRoles
+                (
+                    Id,
+                    UserId,
+                    RoleId,
+                    CreatedAt
+                )
+                VALUES
+                (
+                    gen_random_uuid(),
+                    @UserId,
+                    @RoleId,
+                    NOW()
+                );
+                """;
+
+            foreach (var roleId in req.RoleIds.Distinct())
             {
-                req.FirstName,
-                req.LastName,
-                req.Email,
-                req.PhoneNumber,
-                PasswordHash = passwordHash
-            });
+                await connection.ExecuteAsync(
+                    roleSql,
+                    new
+                    {
+                        UserId = user.Id,
+                        RoleId = roleId
+                    },
+                    transaction);
+            }
 
-        // 3. Generate an account activation token.
-        var activationToken =
-            await _accountActivationService.CreateActivationTokenAsync(
-                user.Id,
-                ct);
+            // 4. Assign groups to the user.
+            const string groupSql = """
+                INSERT INTO UserGroups
+                (
+                    Id,
+                    UserId,
+                    GroupId,
+                    CreatedAt
+                )
+                VALUES
+                (
+                    gen_random_uuid(),
+                    @UserId,
+                    @GroupId,
+                    NOW()
+                );
+                """;
 
-        // Temporary development output.
-        Console.WriteLine(
-            $"Activation token for user {user.Id}: {activationToken}");
+            foreach (var groupId in req.GroupIds.Distinct())
+            {
+                await connection.ExecuteAsync(
+                    groupSql,
+                    new
+                    {
+                        UserId = user.Id,
+                        GroupId = groupId
+                    },
+                    transaction);
+            }
 
-        // 4. Return the newly created user.
-        await Send.OkAsync(user, ct);
+            // 5. Commit user, roles, and groups together.
+            transaction.Commit();
+
+            // 6. Generate an account activation token.
+            var activationToken =
+                await _accountActivationService.CreateActivationTokenAsync(
+                    user.Id,
+                    ct);
+
+            // Temporary development output.
+            Console.WriteLine(
+                $"Activation token for user {user.Id}: {activationToken}");
+
+            // 7. Return the newly created user.
+            await Send.OkAsync(user, ct);
+        }
+        catch
+        {
+            // Roll back user + role/group assignments
+            // if any database operation fails.
+            transaction.Rollback();
+
+            throw;
+        }
     }
 }

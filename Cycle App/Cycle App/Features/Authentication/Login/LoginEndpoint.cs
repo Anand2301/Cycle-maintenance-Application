@@ -82,16 +82,38 @@ public class LoginEndpoint
             return;
         }
 
-        // 5. Calculate the token expiration time.
+        // 5. Get the user's roles.
+        const string roleSql = """
+            SELECT
+                r.Id,
+                r.Name
+            FROM UserRoles ur
+            INNER JOIN Roles r
+                ON ur.RoleId = r.Id
+            WHERE ur.UserId = @UserId
+              AND r.IsActive = TRUE
+            ORDER BY r.Name;
+            """;
+
+        var roles = (
+            await connection.QueryAsync<RoleResponse>(
+                roleSql,
+                new
+                {
+                    UserId = user.Id
+                })
+        ).ToList();
+
+        // 6. Calculate the token expiration time.
         var expiresAt = DateTime.UtcNow.AddMinutes(60);
 
-        // 6. Generate the JWT.
+        // 7. Generate the JWT.
         var accessToken = _jwtService.GenerateToken(
             user.Id,
             user.Email!,
             user.FirstName);
 
-        // 7. Return the access token.
+        // 8. Return the access token and user information.
         await Send.OkAsync(
             new LoginResponse
             {
@@ -99,7 +121,8 @@ public class LoginEndpoint
                 ExpiresAt = expiresAt,
                 UserId = user.Id,
                 FirstName = user.FirstName,
-                Email = user.Email
+                Email = user.Email,
+                Roles = roles
             },
             ct);
     }
@@ -107,11 +130,17 @@ public class LoginEndpoint
     private class UserLoginRecord
     {
         public Guid Id { get; set; }
+
         public string FirstName { get; set; } = string.Empty;
+
         public string? LastName { get; set; }
+
         public string? Email { get; set; }
+
         public string PhoneNumber { get; set; } = string.Empty;
+
         public string? PasswordHash { get; set; }
+
         public bool IsActive { get; set; }
     }
 }

@@ -22,6 +22,7 @@ builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 builder.Services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
 builder.Services.AddScoped<IAccountActivationService, AccountActivationService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // JWT Settings
 builder.Services.Configure<JwtSettings>(
