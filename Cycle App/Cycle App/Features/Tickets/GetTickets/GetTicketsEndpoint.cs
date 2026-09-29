@@ -51,6 +51,17 @@ public class GetTicketsEndpoint
                 t.ContactEmail,
                 t.Description,
 
+                t.UDF1, 
+                t.UDF2, 
+                t.UDF3, 
+                t.UDF4, 
+                t.UDF5, 
+                t.UDF6, 
+                t.UDF7, 
+                t.UDF8, 
+                t.UDF9, 
+                t.UDF10,
+            
                 t.CreatedAt,
                 t.UpdatedAt,
 

@@ -47,6 +47,16 @@ public class GetAssignedTicketsEndpoint
                 t.ContactEmail,
                 t.Description,
                 t.CreatedAt,
+                t.UDF1, 
+                t.UDF2, 
+                t.UDF3, 
+                t.UDF4, 
+                t.UDF5, 
+                t.UDF6, 
+                t.UDF7, 
+                t.UDF8, 
+                t.UDF9, 
+                t.UDF10,
                 t.UpdatedAt
             FROM Tickets t
             INNER JOIN Customers c
@@ -97,6 +107,16 @@ public class GetAssignedTicketsEndpoint
         public string ContactPhone { get; set; } = string.Empty;
         public string? ContactEmail { get; set; }
         public string? Description { get; set; }
+        public string? UDF1 { get; set; }
+        public string? UDF2 { get; set; }
+        public string? UDF3 { get; set; }
+        public string? UDF4 { get; set; }
+        public string? UDF5 { get; set; }
+        public string? UDF6 { get; set; }
+        public string? UDF7 { get; set; }
+        public string? UDF8 { get; set; }
+        public string? UDF9 { get; set; }
+        public string? UDF10 { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

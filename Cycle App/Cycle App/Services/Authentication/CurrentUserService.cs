@@ -38,4 +38,10 @@ public class CurrentUserService : ICurrentUserService
             .User
             .Identity?
             .Name;
+
+    public string? Role =>
+        _httpContextAccessor.HttpContext?
+        .User
+        .FindFirst(ClaimTypes.Role)?
+        .Value;
 }

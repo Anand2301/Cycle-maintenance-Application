@@ -72,7 +72,17 @@ public class CreateTicketEndpoint
                 ContactPhone,
                 ContactEmail,
                 Description,
-                CreatedBy
+                CreatedBy,
+                UDF1, 
+                UDF2, 
+                UDF3, 
+                UDF4, 
+                UDF5, 
+                UDF6, 
+                UDF7, 
+                UDF8, 
+                UDF9, 
+                UDF10
             )
             VALUES
             (
@@ -85,7 +95,17 @@ public class CreateTicketEndpoint
                 @ContactPhone,
                 @ContactEmail,
                 @Description,
-                @CreatedBy
+                @CreatedBy,
+                @UDF1, 
+                @UDF2, 
+                @UDF3, 
+                @UDF4, 
+                @UDF5, 
+                @UDF6, 
+                @UDF7, 
+                @UDF8, 
+                @UDF9, 
+                @UDF10
             )
             RETURNING
                 Id,

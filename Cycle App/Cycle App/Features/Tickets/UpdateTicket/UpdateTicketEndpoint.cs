@@ -41,6 +41,16 @@ public class UpdateTicketEndpoint
                 ContactEmail = COALESCE(@ContactEmail, ContactEmail),
                 Description = COALESCE(@Description, Description),
                 UpdatedAt = NOW(),
+                UDF1= COALESCE(@UDF1,UDF1), 
+                UDF2= COALESCE(@UDF2,UDF2), 
+                UDF3= COALESCE(@UDF3,UDF3), 
+                UDF4= COALESCE(@UDF4,UDF4), 
+                UDF5= COALESCE(@UDF5,UDF5), 
+                UDF6= COALESCE(@UDF6,UDF6), 
+                UDF7= COALESCE(@UDF7,UDF7), 
+                UDF8= COALESCE(@UDF8,UDF8), 
+                UDF9= COALESCE(@UDF9,UDF9), 
+                UDF10= COALESCE(@UDF10,UDF10), 
                 UpdatedBy = @UpdatedBy
             WHERE Id = @TicketId
             RETURNING
@@ -70,6 +80,16 @@ public class UpdateTicketEndpoint
                 req.ContactPhone,
                 req.ContactEmail,
                 req.Description,
+                req.UDF1,
+                req.UDF2,
+                req.UDF3,
+                req.UDF4,
+                req.UDF5,
+                req.UDF6,
+                req.UDF7,
+                req.UDF8,
+                req.UDF9,
+                req.UDF10,
                 UpdatedBy = _currentUser.UserId
             });
 
